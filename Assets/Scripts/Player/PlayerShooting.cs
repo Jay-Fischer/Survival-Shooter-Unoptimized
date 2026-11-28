@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
-
+using UnityEngine.InputSystem;
 public class PlayerShooting : MonoBehaviour
 {
+    IA_Player _inputs;
+
+
     public int damagePerShot = 20;
     public float timeBetweenBullets = 0.15f;
     public float range = 100f;
 
-
+    bool isShooting;
     float timer;
     Ray shootRay = new Ray();
     RaycastHit shootHit;
@@ -20,6 +23,8 @@ public class PlayerShooting : MonoBehaviour
 
     void Awake ()
     {
+        _inputs = new IA_Player();
+
         shootableMask = LayerMask.GetMask ("Shootable");
         gunParticles = GetComponent<ParticleSystem> ();
         gunLine = GetComponent <LineRenderer> ();
@@ -27,12 +32,21 @@ public class PlayerShooting : MonoBehaviour
         gunLight = GetComponent<Light> ();
     }
 
+    private void OnEnable()
+    {
+        _inputs.Enable();
+    }
+
+    private void OnDisable()
+    {
+        _inputs.Disable();
+    }
 
     void Update ()
     {
         timer += Time.deltaTime;
 
-		if(Input.GetButton ("Fire1") && timer >= timeBetweenBullets && Time.timeScale != 0)
+		if(isShooting && timer >= timeBetweenBullets && Time.timeScale != 0)
         {
             Shoot ();
         }
@@ -50,6 +64,17 @@ public class PlayerShooting : MonoBehaviour
         gunLight.enabled = false;
     }
 
+    public void OnShoot(InputAction.CallbackContext ctx)
+    {
+        if(ctx.performed)
+        {
+            isShooting = true;
+        }
+        else if (ctx.canceled)
+        {
+            isShooting = false;
+        }
+    }
 
     void Shoot ()
     {

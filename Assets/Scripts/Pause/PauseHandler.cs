@@ -1,17 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class PauseHandler : MonoBehaviour
 {
-    // Update is called once per frame
-    void Update()
+
+    public void OnPause(InputAction.CallbackContext ctx)
     {
-        if(Input.GetButtonDown("Pause"))
+        if(ctx.performed)
         {
             // if pause menu is open, pressing pause button means we want to unpause
-            if(SceneManager.GetSceneByName("Pause").isLoaded)
+            if (SceneManager.GetSceneByName("Pause").isLoaded)
             {
                 UnpauseGame();
             }
@@ -23,7 +24,6 @@ public class PauseHandler : MonoBehaviour
         }
     }
 
-    [ContextMenu("Pause")]
     public void PauseGame()
     {
         SceneManager.LoadScene("Pause", LoadSceneMode.Additive);

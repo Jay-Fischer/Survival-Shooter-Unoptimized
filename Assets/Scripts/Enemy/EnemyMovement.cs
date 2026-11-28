@@ -21,7 +21,7 @@ public class EnemyMovement : MonoBehaviour
     void Update ()
     {
 
-        if (enemyHealth > 0 && playerHealth > 0)
+        if (enemyHealth > 0 && playerHealth > 0 && agent.isActiveAndEnabled)
         {
             agent.SetDestination (player.position);
         }

@@ -1,11 +1,22 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-	public float speed = 6f;
+	[Header("Input System")]
+	IA_Player _inputs;
+	[SerializeField] CharacterController cc;
+    Vector2 moveInput;
+    Vector3 moveDirection;
+    Vector2 mouseScreenPosition;
+
+
+
+    public float speed = 6f;
 
 	private Vector3 movement;
-	private Animator anim;
+	private Animator _anim;
 	private Rigidbody playerRigidbody;
 	private int floorMask;
 	private float camRayLength = 100f;
@@ -13,31 +24,48 @@ public class PlayerMovement : MonoBehaviour
 	void Awake()
 	{
 		floorMask = LayerMask.GetMask("Floor");
-		anim = GetComponent<Animator>();
+        _inputs = new IA_Player();
+        cc = GetComponent<CharacterController>();
+        _anim = GetComponent<Animator>();
 		playerRigidbody = GetComponent<Rigidbody>();
 	}
+    private void OnEnable()
+    {
+        _inputs.Enable();
+    }
 
-	void FixedUpdate()
+    private void OnDisable()
+    {
+        _inputs.Disable();
+    }
+
+    void FixedUpdate()
 	{
-		float h = Input.GetAxisRaw("Horizontal");
-		float v = Input.GetAxisRaw("Vertical");
+        moveInput = _inputs.Player.Movement.ReadValue<Vector2>().normalized;
 
-		Move(h, v);
+        Move();
 		Turning();
-		Animating(h, v);
+		//Animating();
 	}
+    public void OnAim(InputAction.CallbackContext value)
+    {
+        mouseScreenPosition = value.ReadValue<Vector2>();
+    }
 
-	void Move(float h, float v)
+    void Move()
 	{
-		movement.Set(h, 0f, v);
-		movement = movement.normalized * speed * Time.deltaTime;
+        moveDirection = new Vector3(moveInput.x, 0, moveInput.y);
 
-		playerRigidbody.MovePosition(transform.position + movement);
-	}
+        if (moveDirection.magnitude > 0.1f)
+        {
+
+            cc.Move(moveDirection * speed * Time.deltaTime);
+        }
+    }
 
 	void Turning()
 	{
-		Ray camRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+		Ray camRay = Camera.main.ScreenPointToRay(mouseScreenPosition);	
 		RaycastHit floorHit;
 
 		if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask)) {
@@ -45,14 +73,15 @@ public class PlayerMovement : MonoBehaviour
 			playerToMouse.y = 0f;
 
 			Quaternion newRotation = Quaternion.LookRotation(playerToMouse);
-			playerRigidbody.MoveRotation(newRotation);
-		}
+			transform.rotation = newRotation;
+
+        }
 	}
 
-	void Animating(float h, float v)
+	/*void Animating()
 	{
 		bool walking = h != 0f || v != 0f;
 
 		anim.SetBool("IsWalking", walking);
-	}
+	}*/
 }
